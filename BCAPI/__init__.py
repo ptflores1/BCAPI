@@ -1,1 +1,1 @@
-from bcapi import BCAPI
+from .bcapi import BCAPI
