@@ -54,7 +54,7 @@ class BCAPI:
             trs = tables[5].findChildren("tr", recursive=False)
         except IndexError:
             logging.warning("No courses were found")
-            return "[]"
+            return "[]", False
 
         courses = []
         escuela = ""
