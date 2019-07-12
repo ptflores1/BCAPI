@@ -10,6 +10,25 @@ class BCAPI:
 
     base_url = "http://buscacursos.uc.cl/"
 
+    key_map = {
+        'NRC': "nrc",
+        'Sigla': "initials",
+        'Permite Retiro': "allows_withdrawal",
+        '¿Se dicta en inglés?': "english",
+        'Sec.': "section",
+        '¿Requiere Aprob. Especial?': "special_approval",
+        'Categoría': "category",
+        'Nombre': "name",
+        'Profesor': "professor",
+        'Campus': "campus",
+        'Créd.': "credits",
+        'Vacantes Totales': "total_vacancies",
+        'Vacantes Disponibles': "free_vacancies",
+        'Vacantes Reservadas': "reserved_vacancies",
+        'Horario': "schedule",
+        'Escuela': "school"
+    }
+
     @classmethod
     def semester_options(cls):
         soup = BeautifulSoup(requests.get(cls.base_url).text, "lxml")
@@ -76,7 +95,9 @@ class BCAPI:
         for course in courses:
             course["Profesor"] = [{"first_name": p.strip().split(" ")[1], "last_name": p.strip(
             ).split(" ")[0]} for p in course["Profesor"].split(",")]
-            for key, val in course.items():
+            course.pop("Agregar al horario", None)
+            items = list(course.items())
+            for key, val in items:
                 if isinstance(val, str) and val.isnumeric():
                     course[key] = int(val)
                 elif val == "SI":
@@ -87,7 +108,8 @@ class BCAPI:
                     course[key] = None
                 elif key == "Horario":
                     course[key] = cls.__parse_schedule(val)
-            course.pop("Agregar al horario", None)
+                course[cls.key_map[key]] = course.pop(key)
+
         return courses
 
     @classmethod
@@ -97,5 +119,5 @@ class BCAPI:
             days, block = e[0].split(":")
             days = days.split("-")
             block = block.split(",")
-            return {"class_room": e[2], "type": e[1], "blocks": {"days": days, "block": block}}
+            return {"classroom": e[2], "type": e[1], "blocks": {"days": days, "block": block}}
         return [parse(e) for e in sched_str.split("\n\n\n\n\n")]
